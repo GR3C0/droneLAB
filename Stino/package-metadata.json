@@ -1,0 +1,1 @@
+{"platforms": ["*"], "description": "A Sublime Text Plugin for Arduino", "dependencies": [], "url": "https://github.com/gepd/Stino", "sublime_text": "*", "version": "2016.01.22.05.51.02"}
