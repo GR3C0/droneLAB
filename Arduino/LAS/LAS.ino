@@ -51,13 +51,19 @@ void setup()
 
 void loop()
 {
-	if(Serial.available()) // Lectura de la raspi
+	if(Serial.available()) // Si está disponible la lectura de la raspi
 	{
 		char c = Serial.read();
+		if(c == 'sonar')
+		{
+		    Sonar();
+		}
+		else if(c == 'sensor')
+		{
+		    sensor();
+		}
 
 	}
-	sensor();
-	Sonar();
 }
 
 float sensor()
