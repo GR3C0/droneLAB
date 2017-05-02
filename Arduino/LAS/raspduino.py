@@ -7,10 +7,15 @@ print("Starting!")
 
 comando = input('Introduce un comando: ') #Input
 arduino.write(comando) #Mandar un comando hacia Arduino
-if comando == "encender motores":
-	print("Encendiendo motores")
+if comando == "sonar":
+	print("Imprimiendo datos del sonar")
 
-elif comando == "apagar motores":
-	print("Apagando motores")
+elif comando == "sensor":
+	print("Imprimiendo datos del sensor")
+txt = ''
+while arduino.inWaiting() > 0:
+      txt += arduino.read(1)
+      print txt
+      txt = ''
 
 arduino.close() #Finalizamos la comunicacion
