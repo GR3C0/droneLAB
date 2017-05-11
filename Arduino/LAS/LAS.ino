@@ -29,6 +29,7 @@ NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
 void setup()
 {
 	Serial.begin(9600); //Canal de entrada
+	// Comprobación del sensor
 	Serial.println("Orientation Sensor Test"); Serial.println("");
     if(!bno.begin())
     {
