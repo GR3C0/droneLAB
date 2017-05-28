@@ -1,38 +1,54 @@
-#include <Arduino.h>
+/*ESC calibration sketch; author: ELECTRONOOBS */
+#include <Servo.h>
 
-// #include <Servo.h>
+#define MAX_SIGNAL 2000
+#define MIN_SIGNAL 1000
+#define MOTOR_PIN 9
+int DELAY = 1000;
 
-// Servo esc;
+Servo motor;
 
-// int ACELERAMAX;
-// int ACELERAMED;
-// int ACELERAMIN;
-// void setup(){
-//   pinMode (2,INPUT);
-//   pinMode (3,INPUT);
-//   pinMode (4,INPUT);
-//   esc.attach (9);
-//   // esc.writeMicroseconds(0);
-//   Serial.begin (9600);
-// }
-// void loop() {
-//   ACELERAMIN = digitalRead(2);
-//   ACELERAMED = digitalRead(3);
-//   ACELERAMAX = digitalRead(4);
+void setup() {
+  Serial.begin(9600);
+  Serial.println("Program begin...");
+  delay(1000);
+  Serial.println("This program will start the ESC.");
 
-//   if(ACELERAMAX == 0) {
-//     esc.writeMicroseconds(1990);
-//     Serial.println ("Max");
-//   }
+  motor.attach(MOTOR_PIN);
 
-//   else if(ACELERAMED == 0) {
-//    esc.writeMicroseconds(1470);
-//     Serial.println ("Med");
-//   }
+  Serial.print("Now writing maximum output: (");Serial.print(MAX_SIGNAL);Serial.print(" us in this case)");Serial.print("\n");
+  Serial.println("Turn on power source, then wait 2 seconds and press any key.");
+  motor.writeMicroseconds(MAX_SIGNAL);
 
-//   else if(ACELERAMIN == 0) {
-//    esc.writeMicroseconds(1130);
-//    Serial.println ("Min");
-//   }
+  // Wait for input
+  while (!Serial.available());
+  Serial.read();
 
-// }
+  // Send min output
+  Serial.println("\n");
+  Serial.println("\n");
+  Serial.print("Sending minimum output: (");Serial.print(MIN_SIGNAL);Serial.print(" us in this case)");Serial.print("\n");
+  motor.writeMicroseconds(MIN_SIGNAL);
+  Serial.println("The ESC is calibrated");
+  Serial.println("----");
+  Serial.println("Now, type a values between 1000 and 2000 and press enter");
+  Serial.println("and the motor will start rotating.");
+  Serial.println("Send 1000 to stop the motor and 2000 for full throttle");
+
+}
+
+void loop() {
+
+  if (Serial.available() > 0)
+  {
+    int DELAY = Serial.parseInt();
+    if (DELAY > 999)
+    {
+
+      motor.writeMicroseconds(DELAY);
+      float SPEED = (DELAY-1000)/10;
+      Serial.print("\n");
+      Serial.println("Motor speed:"); Serial.print("  "); Serial.print(SPEED); Serial.print("%");
+    }
+  }
+}
