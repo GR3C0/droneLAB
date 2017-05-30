@@ -1,5 +1,4 @@
 #include <Arduino.h>
-
 // Prueba de Leds + Adafruit + Sonar
 #include <NewPing.h>
 #include <Wire.h>
@@ -38,16 +37,16 @@ void setup()
     	Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
     	while(1);
   	}
-  
+
   	delay(1000);
-	bno.setExtCrystalUse(true); 
+	bno.setExtCrystalUse(true);
 	pinMode(pinIN1, OUTPUT);
 	pinMode(pinIN2, OUTPUT);
 	pinMode(pinENA, OUTPUT);
 	pinMode(pinIN3, OUTPUT);
 	pinMode(pinIN4, OUTPUT);
 	pinMode(pinENB, OUTPUT);
-	pinMode(LEDVERDE, OUTPUT); 
+	pinMode(LEDVERDE, OUTPUT);
 	pinMode(LEDROJO, OUTPUT);
 	pinMode(LEDAMARILLO, OUTPUT);
 }
@@ -93,7 +92,7 @@ float Sonar()
   	Serial.print("cm");
 
   	if(distancia<=50) // Cuando la distancia es menos o igual a 50 cm SOLO el led rojo se enciende
-  	{	 
+  	{
     	digitalWrite(LEDROJO, HIGH);
     	digitalWrite(LEDVERDE, LOW);
     	digitalWrite(LEDAMARILLO, LOW);
@@ -124,7 +123,7 @@ void moverAdelante(const int pinMotor[3], int speed)
 	analogWrite(pinMotor[0], speed);
 	Serial.println(speed);
 }
- 
+
 void moverAtras(const int pinMotor[3], int speed)
 {
 	digitalWrite(LEDVERDE, LOW);
@@ -134,11 +133,11 @@ void moverAtras(const int pinMotor[3], int speed)
 	digitalWrite(pinMotor[1], LOW);
 	digitalWrite(pinMotor[2], HIGH);
 	Serial.println("ATRASSS");
-	 
+
 	analogWrite(pinMotor[0], speed);
 	Serial.println(speed);
 }
- 
+
 void parar(const int pinMotor[3])
 {
 	digitalWrite(LEDVERDE, LOW);
@@ -150,4 +149,3 @@ void parar(const int pinMotor[3])
 	Serial.println("QUIETO PARADO CHAVAAAL");
 	analogWrite(pinMotor[0], 0);
 }
-
