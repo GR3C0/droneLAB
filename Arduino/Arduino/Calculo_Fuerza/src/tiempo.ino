@@ -28,20 +28,31 @@ void loop()
 {
 
 	imu::Vector<3> acelerometro = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER); // Obtiene la aceleración
-
+	unsigned long inicio = millis(); // Al incio del programa se inicia millis()
 	// Imprime los diferentes valores
-	Serial.print("aX: ");
-	Serial.print(acelerometro.x());
-	Serial.print(" aY: ");
-	Serial.print(acelerometro.y());
-	Serial.print(" aZ: ");
-	Serial.print(acelerometro.z());
+	// Serial.print("aX: ");
+	//Serial.println(acelerometro.x());
+	// Serial.print(" aY: ");
+	// Serial.println(acelerometro.y());
+	// Serial.print(" aZ: ");
+	// Serial.println(acelerometro.z());
+	float a_min = 9.5;
+	Serial.println(acelerometro.x());
+	// while (acelerometro.x()>a_min)
+	// {
+	// 	unsigned long resultado = millis();
+	// 	Serial.println(resultado);
+	// }
 
-	//
+	if(acelerometro.x()>=a_min)
+	{
+		unsigned long tiempo = millis(); // Se inicia otro millis() para calcular el tiempo de la aceleración
+	}
+	Serial.println(tiempo-inicio); // Se resta el tiempo de ejecucion - el tiempo del inicio
+}
+
 	// Serial.print("Tiempo delay : ");
 	// unsigned long time_ms = millis(); // Llamada a la función millis()
 	// delay(100);
 	// unsigned long resultado = micros()-time_ms; // Se resta los microsegundos a la función de millis()
 	// Serial.println(resultado); // tiempo transcurrido en milisegundos
-
-}
