@@ -13,7 +13,7 @@ void setup()
 	if(!bno.begin())
   {
     /* There was a problem detecting the BNO055 ... check your connections */
-    Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
+    Serial.print("Sensor no conectado, comprueba las conexiones");
     while(1);
 
   }
@@ -43,12 +43,17 @@ void loop()
 	// 	unsigned long resultado = millis();
 	// 	Serial.println(resultado);
 	// }
-
+	delay(1000);
+	unsigned long t_final;
 	if(acelerometro.x()>=a_min)
 	{
-		unsigned long tiempo = millis(); // Se inicia otro millis() para calcular el tiempo de la aceleración
+		t_final = millis(); // Se inicia otro millis() para calcular el tiempo de la aceleración
 	}
-	Serial.println(tiempo-inicio); // Se resta el tiempo de ejecucion - el tiempo del inicio
+	Serial.println("Inicio: ");
+	Serial.println(inicio);
+	Serial.println("Final: ");
+	Serial.println(t_final);
+	Serial.println(t_final-inicio); // Se resta el tiempo de ejecucion - el tiempo del inicio
 }
 
 	// Serial.print("Tiempo delay : ");
