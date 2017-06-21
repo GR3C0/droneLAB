@@ -1,11 +1,10 @@
 #include <Servo.h>
 
-#define MAX_SIGNAL 2000
-#define MIN_SIGNAL 1500
-#define MEDIUM_SIGNAL 1750
-#define MOTOR_PIN 10
+#define MOTOR_IZQ 3
+#define MOTOR_DER 5
 
-Servo motor;
+Servo motor_izq;
+Servo motor_der;
 
 void setup()
 {
@@ -13,21 +12,19 @@ void setup()
   Serial.println("Conectando motores");
   delay(2000);
 
-  motor.attach(MOTOR_PIN);
+  motor_izq.attach(MOTOR_IZQ);
+  motor_der.attach(MOTOR_DER);
 
-  Serial.println("Motor a velocidad minima");
-  motor.writeMicroseconds(MIN_SIGNAL);
-  delay(2000);
-  Serial.println("Motor a velocidad media");
-  motor.writeMicroseconds(MEDIUM_SIGNAL);
-  delay(5000);
-  Serial.println("Motor a velocidad maxima");
-  motor.writeMicroseconds(MAX_SIGNAL);
+  motor_izq.writeMicroseconds(1100);
+  motor_der.writeMicroseconds(1100);
 
 }
 
 void loop()
 {
 
+  motor_izq.writeMicroseconds(1200);// DER
+  motor_der.writeMicroseconds(1200);
+  Serial.println("Motores conectados");
 
 }
