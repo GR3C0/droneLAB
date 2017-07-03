@@ -1,6 +1,6 @@
 #include <Servo.h>
 
-#define MOTOR_IZQ 9
+#define MOTOR_IZQ 4
 #define MOTOR_DER 3
 
 Servo motor_izq;
@@ -12,19 +12,27 @@ void setup()
   Serial.println("Conectando motores");
   delay(2000);
 
-  motor_izq.attach(MOTOR_IZQ);
-  motor_der.attach(MOTOR_DER);
+  pinMode(MOTOR_IZQ, OUTPUT);
+  pinMode(MOTOR_DER, OUTPUT);
 
-  motor_izq.writeMicroseconds(1000);
-  motor_der.writeMicroseconds(1000);
+  // motor_izq.attach(MOTOR_IZQ);
+  // motor_der.attach(MOTOR_DER);
+
+  while (!Serial.available());
+    Serial.read();
+
+  // motor_izq.writeMicroseconds(2000);
+  // motor_der.writeMicroseconds(2000);
 
 }
 
 void loop()
 {
 
-  motor_izq.writeMicroseconds(1250);// DER
-  motor_der.writeMicroseconds(1250);
+  analogWrite(MOTOR_IZQ, 2000);
+
+  // motor_izq.write(1500);
+  // motor_der.write(1500);
   Serial.println("Motores conectados");
 
 }
