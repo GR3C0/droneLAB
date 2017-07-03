@@ -1,8 +1,15 @@
+/*--------MASA DRONE--------------------------*/
+#define MASA_DRONE 5
+/*---------------MINIMOS PID------------------*/
+#define AX_MIN 9.9
+#define AY_MIN 9.9
+#define AZ_MIN 9.9
+
 /*---------NIVELES VELOCIDAD MOTORES----------*/
 #define MOTOR_MIN_LEVEL 1000
 #define MOTOR_MEDIUM_LEVEL 1500
 #define MOTOR_MAX_LEVEL 2000
-/*-------------------------------------------*/
+/*--------------------------------------------*/
 
 //---------------PINES MOTORES----------------
 #define MOTOR_DEL_IZQ 2
