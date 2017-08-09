@@ -4,6 +4,9 @@
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
 
+#define MOTOR_IZQ 4
+#define MOTOR_DER 3
+
 // Declaración de motores
 Servo motor_der;
 Servo motor_izq;
@@ -13,7 +16,7 @@ Adafruit_BNO055 bno = Adafruit_BNO055(55); // Iniciar el sensor
 float Angulo_aceleracion[2];
 float Angulo_giro[2];
 float Angulo_total[2];
-float giro_x, giro_y;
+float giro_z, giro_y, acel_z, acel_y;
 
 float T_transcurrido, time, timePrev;
 int i;
@@ -23,9 +26,9 @@ float pid_p=0;
 float pid_i=0;
 float pid_d=0;
 /////////////////PID CONSTANTS/////////////////
-double kp=1.00;//3.55
-double ki=0.000;//0.003
-double kd=0.000;//2.05
+double kp=3.55;//3.55 Amplia o reduce el error
+double ki=0.003;//0.003 Acumula el error
+double kd=2.05;//2.05 Evalua el incremento del error
 ///////////////////////////////////////////////
 
 double velocidad=1300; // Velocidad inicial de los motores
@@ -34,12 +37,18 @@ float angulo_deseado = 0; // Angulo que queremos
 void setup()
 {
   Serial.begin(9600);
-  motor_der.attach(3); //attatch the right motor to pin 3
-  motor_izq.attach(5);  //attatch the left motor to pin 5
+  if(!bno.begin()) //Prueba de conexión del Adafruit_Sensor
+  {
+    Serial.print("No detectado");
+    while(1);
+  }
+  bno.setExtCrystalUse(true);
+  motor_der.attach(MOTOR_DER); //attatch the right motor to pin 3
+  motor_izq.attach(MOTOR_IZQ);  //attatch the left motor to pin 5
 
   time = millis(); // Empieza a contar el tiempo
-  motor_izq.writeMicroseconds(1100); // Enviamos el valor minimo a los motores para que se enciendan
-  motor_der.writeMicroseconds(1100);
+  motor_izq.writeMicroseconds(1000); // Enviamos el valor minimo a los motores para que se enciendan
+  motor_der.writeMicroseconds(1000);
   delay(1000); // Le damos 7 segundos para empezar
 
 }
@@ -59,25 +68,35 @@ void loop()
 
   // Obtenemos los grados
 
-  Serial.println(euler.x());
-  Serial.println(euler.y());
+  Serial.print(euler.x());
+  Serial.print("||");
+  Serial.print(euler.y());
+  Serial.print("||");
   Serial.println(euler.z());
 
   // Datos del giroscopio pasados a grados/s
 
-  giro_x = giroscopio.x()*57.2958;
-  giro_y = giroscopio.y()*57.2958;
+  // giro_z = giroscopio.z()*57.2958;
+  // giro_y = giroscopio.y()*57.2958;
+  giro_z = euler.z();
+  giro_y = euler.y();
 
-  Angulo_giro[0] = giro_x;
+  acel_z = acelerometro.z();
+  acel_y = acelerometro.y();
+
+  Angulo_aceleracion[0] = acel_z;
+  Angulo_aceleracion[1] = acel_y;
+  Angulo_giro[0] = giro_z;
   Angulo_giro[1] = giro_y;
 
-  /*---Ángulo X---*/
-  Angulo_total[0] = 0.98 *(Angulo_total[0] + Angulo_giro[0]*T_transcurrido) + 0.02*Angulo_aceleracion[0];
+  /*---Ángulo Z---*/
+  // Angulo_total[0] = 0.98 *(Angulo_total[0] + Angulo_giro[0]*T_transcurrido) + 0.02*Angulo_aceleracion[0];
   /*---Ángulo Y---*/
-  Angulo_total[1] = 0.98 *(Angulo_total[1] + Angulo_giro[1]*T_transcurrido) + 0.02*Angulo_aceleracion[1];
+  // Angulo_total[1] = 0.98 *(Angulo_total[1] + Angulo_giro[1]*T_transcurrido) + 0.02*Angulo_aceleracion[1];
 
   // Almacenamos el error
-  error = Angulo_total[1]-angulo_deseado;
+  // error = Angulo_total[0]-angulo_deseado;
+  error = Angulo_giro[0] - angulo_deseado;
 
   // Esta es la constante que solo hace falta multiplicarla por el error
   pid_p = kp*error;
@@ -109,18 +128,18 @@ void loop()
   pwmDer = velocidad - PID;
 
   // Reajustamos la velocidad por si acaso
-  if(pwmDer < 1000)
+  if(pwmDer < 1200)
   {
-    pwmDer= 1100;
+    pwmDer= 1200;
   }
   if(pwmDer > 2000)
   {
     pwmDer=2000;
   }
 
-  if(pwmIzq < 1000)
+  if(pwmIzq < 1200)
   {
-    pwmIzq= 1100;
+    pwmIzq= 1200;
   }
   if(pwmIzq > 2000)
   {
@@ -128,10 +147,13 @@ void loop()
   }
 
   // Le enviamos los datos a los motores
-  motor_der.writeMicroseconds(pwmDer);
+  motor_der.writeMicroseconds(pwmIzq);
+  Serial.print(pwmIzq);
+  Serial.print("||");
+  motor_izq.writeMicroseconds(pwmDer);
   Serial.println(pwmDer);
-  motor_izq.writeMicroseconds(pwmIzq);
-  Serial.println(pwmIzq);
   error_previo = error; // Almacenamos el error
 
-}
+  motor_der.writeMicroseconds(1700);
+  motor_izq.writeMicroseconds(1700);
+ }

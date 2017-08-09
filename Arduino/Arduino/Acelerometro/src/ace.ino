@@ -86,40 +86,21 @@ void loop()
   imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
 
   /* Display the floating point data */
-  Serial.print("aX: ");
-  Serial.print(acelerometro.x());
-  Serial.print(" aY: ");
-  Serial.print(acelerometro.y());
-  Serial.print(" aZ: ");
-  Serial.print(acelerometro.z());
+  // Serial.print("aX: ");
+  // Serial.print(acelerometro.x());
+  // Serial.print(" aY: ");
+  // Serial.print(acelerometro.y());
+  // Serial.print(" aZ: ");
+  // Serial.print(acelerometro.z());
   // Serial.print("||");
-  // Serial.print(" eX: ");
-  // Serial.print(euler.x());
-  // Serial.print(" eY: ");
-  // Serial.print(euler.y());
-  // Serial.print(" eZ: ");
-  // Serial.print(euler.z());
-  Serial.println();
 
-  if(euler.x() <= 20)
-  {
-    digitalWrite(LedRojo, HIGH);
-    digitalWrite(LedVerde, LOW);
-    digitalWrite(LedAmarillo, LOW);
-    Serial.print("Hola\n");
-  }
-  else if(euler.x() >= 180)
-  {
-    digitalWrite(LedRojo, LOW);
-    digitalWrite(LedVerde, HIGH);
-    digitalWrite(LedAmarillo, LOW);
-  }
-  else
-  {
-    digitalWrite(LedRojo, LOW);
-    digitalWrite(LedVerde, LOW);
-    digitalWrite(LedAmarillo, HIGH);
-  }
+  Serial.print(" eX: ");
+  Serial.print(euler.x());
+  Serial.print(" eY: ");
+  Serial.print(euler.y());
+  Serial.print(" eZ: ");
+  Serial.print(euler.z());
+  Serial.println();
 
   delay(100);
 }
