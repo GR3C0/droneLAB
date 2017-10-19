@@ -1,0 +1,15 @@
+.boton_volar{
+    text-decoration: none;
+    padding: 100px, 500px;
+    font-weight: 600;
+    font-size: 200px;
+    color: #ffffff;
+    background-color: #1883ba;
+    border-radius: 60px;
+    border: 10px solid #0016b0;
+}
+
+.boton_personalizado:hover{
+    color: #1883ba;
+    background-color: #ffffff;
+  }

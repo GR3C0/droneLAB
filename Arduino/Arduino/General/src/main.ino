@@ -22,20 +22,22 @@ NewPing sonar[SONAR_NUM] =
 
 void setup()
 {
-  Serial.begin(9600);
-  if(!bno.begin()) //Prueba de conexión del Adafruit_Sensor
-  {
-    Serial.print("No detectado");
-    while(1);
-  }
-  bno.setExtCrystalUse(true);
+
 }
 
 void loop()
 {
-  // Dependiendo de lo que el arduino reciba que quiere hacer el usuario,
-  // Usa una función o otra
-
+	if(Serial.available()) // Si está disponible la lectura de la raspi
+	{
+		char comando = Serial.read();
+		if(comando == 'sonar')
+		{
+				Sonar();
+		}
+		else if(comando == 'sensor')
+		{
+				sensor();
+		}
 }
 
 void rozamiento_cero()
