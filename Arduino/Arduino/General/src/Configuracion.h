@@ -42,23 +42,33 @@
 #define LED_AMARILLO 38
 
 //-----------------PID ESPECIFICACIÓNES-----------
-float Angulo_aceleracion[2];
-float Angulo_giro[2];
-float Angulo_total[2];
-float giro_z, giro_y, acel_z, acel_y;
+Servo right_prop; // Declaración de motores
+Servo left_prop;
+Servo right_2_prop;
+Servo left_2_prop;
+// El MPU6050 envia los datos es int16_t
 
-float T_transcurrido, time, timePrev;
+int16_t Acc_rawX, Acc_rawY, Acc_rawZ,Gyr_rawX, Gyr_rawY, Gyr_rawZ;
+
+
+float Acceleration_angle[2];
+float Gyro_angle[2];
+float Total_angle[2];
+
+
+float elapsedTime, time, timePrev;
 int i;
+float rad_to_deg = 180/3.141592654;
 
-float PID, pwmIzq, pwmDer, error, error_previo;
+float PID, pwmLeft, pwmLeft2, pwmRight2, pwmRight, error, previous_error;
 float pid_p=0;
 float pid_i=0;
 float pid_d=0;
 /////////////////PID CONSTANTS/////////////////
-double kp=3.55;//3.55 Amplia o reduce el error
-double ki=0.003;//0.003 Acumula el error
-double kd=2.05;//2.05 Evalua el incremento del error
+double kp=3.0;//3.55
+double ki=0.003;//0.003
+double kd=2.0;//2.05
 ///////////////////////////////////////////////
 
-double velocidad=1300; // Velocidad inicial de los motores
-float angulo_deseado = 0; // Angulo que queremos
+double throttle=1200; // Valor inicial de arranque de los motores
+float desired_angle = 0;

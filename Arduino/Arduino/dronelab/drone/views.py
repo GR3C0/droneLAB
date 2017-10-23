@@ -11,7 +11,7 @@ def volar(request):
 def raspduino():
     # Comunicación con la arduino
     print("Hola Mundo")
-    raspi = serial.Serial('/dev/cu.usbmodem1421', '9600') # Puerto de la arduino
+    raspi = serial.Serial('/dev/cu.wchusbserial1420', '9600') # Puerto de la arduino
     print("Starting!")
 
     while True:
