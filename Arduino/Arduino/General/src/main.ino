@@ -31,8 +31,10 @@ void setup()
 
 	time = millis(); // Medición del tiempo
 	// Se envia el valor minimo al ESC para que se calibre
-	left_prop.writeMicroseconds(1000);
-	right_prop.writeMicroseconds(1000);
+	left_prop.writeMicroseconds(1100);
+	right_prop.writeMicroseconds(1100);
+	right_2_prop.writeMicroseconds(1100);
+	left_2_prop.writeMicroseconds(1100);
 }
 
 void loop()
@@ -168,7 +170,8 @@ void pid()
 	   // Sumamos el valor minimo + el PID
 	   pwmLeft = throttle + PID;
 	   pwmRight = throttle - PID;
-
+		 pwmLeft2 = throttle - PID;
+		 pwmRight2 = throttle + PID;
 
 	   // Hacemos que no se pasen los datos
 	   //Right
@@ -180,6 +183,14 @@ void pid()
 	   {
 	     pwmRight=1250;
 	   }
+		 if(pwmRight2 < 1200)
+	   {
+	     pwmRight2 = 1200;
+	   }
+	   if(pwmRight2 > 1250)
+	   {
+	     pwmRight2 =1250;
+	   }
 	   //Left
 	   if(pwmLeft < 1200)
 	   {
@@ -189,11 +200,21 @@ void pid()
 	   {
 	     pwmLeft=1250;
 	   }
+		 if(pwmLeft2 < 1200)
+	   {
+	     pwmLeft2= 1200;
+	   }
+	   if(pwmLeft2 > 1250)
+	   {
+	     pwmLeft2=1250;
+	   }
 	   // Mandamos los datos al motor
 	   left_prop.writeMicroseconds(pwmLeft);
+		 left_2_prop.writeMicroseconds(pwmLeft2);
 	   Serial.print(pwmLeft);
 	   Serial.print("||");
 	   right_prop.writeMicroseconds(pwmRight);
+		 right_2_prop.writeMicroseconds(pwmRight2);
 	   Serial.println(pwmRight);
 	   previous_error = error; //Remember to store the previous error.
 

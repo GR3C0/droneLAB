@@ -1,13 +1,15 @@
 <!DOCTYPE html>
+{% load staticfiles %}
 <html>
   <head>
     <meta charset="utf-8">
     <script src="giroscopio.js"></script>
     <title>droneLAB</title>
+    <link rel="stylesheet" href="{% static 'css/botones.css' %}"/>
   </head>
   <body>
-    <h1><a href="volar">Volar</a></h1>
-    <h1><a href="">Aterrizar</a></h1>
+    <h1><a class="boton_1" href="volar">Volar</a></h1>
+    <h1><a class="boton_2" href="">Aterrizar</a></h1>
     <script src="giroscopio.js"></script>
   </body>
 </html>
