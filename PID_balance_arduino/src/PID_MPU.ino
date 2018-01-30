@@ -1,12 +1,10 @@
 #include <Wire.h>
 #include <Servo.h>
 
-
 Servo del_der;
 Servo del_izq;
 Servo tras_der;
 Servo tras_izq;
-
 
 // El MPU6050 envia los datos es int16_t
 
@@ -27,12 +25,12 @@ float pid_p=0;
 float pid_i=0;
 float pid_d=0;
 /////////////////PID CONSTANTS/////////////////
-double kp=3.0;//3.55
+double kp=3.55;//3.55
 double ki=0.003;//0.003
 double kd=2.0;//2.05
 ///////////////////////////////////////////////
 
-double throttle=1200; // Valor inicial de arranque de los motores
+double throttle=1700; // Valor inicial de arranque de los motores
 float desired_angle = 0;
 
 
@@ -43,24 +41,18 @@ void setup() {
   Wire.write(0);
   Wire.endTransmission(true);
   Serial.begin(250000);
-  del_der.attach(3); // Arratch el pin del motor derecho
-  tras_izq.attach(4);  // Attatch el pin del motor izquierdo
-  del_izq.attach(5);
-  tras_der.attach(6);
 
   time = millis(); // Medición del tiempo
   // Se envia el valor minimo al ESC para que se calibre
-  del_der.writeMicroseconds(1000);
-  del_izq.writeMicroseconds(1000);
-  tras_der.writeMicroseconds(1000);
-  tras_izq.writeMicroseconds(1000);
+  del_izq.attach(3, 1600, 2000);
+  del_der.attach(5, 1600, 2000);
+  tras_der.attach(6, 1600, 2000);
+  tras_izq.attach(7, 1600, 2000);
 }
 
 void loop() {
 
     while (!Serial.available()); // Comprueba si el puerto para leer datos está abierto
-    char respuesta;
-    respuesta = Serial.read(); // Lectura de la respuesta del usuario
 
 /////////////////////////////I M U/////////////////////////////////////
     timePrev = time;
@@ -123,7 +115,7 @@ void loop() {
 
      // La integral solo debe funcionar si nos acercamos al angulo 0, por eso solo lo usamos
      // En un angulo entre -3 y 3.
-     if(-3 < error and error <3)
+     if(-5 < error and error < 5)
      {
        pid_i = pid_i+(ki*error);
      }
@@ -137,58 +129,58 @@ void loop() {
 
      if(PID < -1000)
      {
-       PID=-1000;
+       PID=1000; // -=
      }
      if(PID > 1000)
      {
-       PID=1000;
+       PID=1000; // +=
      }
 
-     // Sumamos el valor minimo + el PID
-     // pwmDel_der = throttle + PID;
-     // pwmDel_izq = throttle - PID;
-     // pwmTras_der = throttle + PID;
-     // pwmTras_izq = throttle - PID;
+     //Sumamos el valor minimo + el PID
+     pwmDel_der = throttle + PID;
+     pwmDel_izq = throttle + PID;
+     pwmTras_der = throttle - PID;
+     pwmTras_izq = throttle - PID;
 
 
      // Hacemos que no se pasen los datos
      //Delantero Derecho
-     if(pwmDel_der < 1200)
+     if(pwmDel_der < 1700)
      {
-       pwmDel_der = 1200;
+       pwmDel_der = 1700;
      }
      if(pwmDel_der > 2000)
      {
        pwmDel_der = 2000;
      }
      //Delantero izquierdo
-     if(pwmDel_izq < 1200)
+     if(pwmDel_izq < 1700)
      {
-       pwmDel_izq = 2000;
+       pwmDel_izq = 1700;
      }
-     if(pwmDel_izq > 1200)
+     if(pwmDel_izq > 2000)
      {
        pwmDel_izq = 2000;
      }
      //Trasero Derecho
-     if(pwmTras_der < 1200)
+     if(pwmTras_der < 1700)
      {
-       pwmTras_der = 2000;
+       pwmTras_der = 1700;
      }
-     if(pwmTras_der > 1200)
+     if(pwmTras_der > 2000)
      {
        pwmTras_der = 2000;
      }
      //Trasero izquierdo
-     if(pwmTras_izq < 1200)
+     if(pwmTras_izq < 1700)
+     {
+       pwmTras_izq = 1700;
+     }
+     if(pwmTras_izq > 2000)
      {
        pwmTras_izq = 2000;
      }
-     if(pwmTras_izq > 1200)
-     {
-       pwmTras_izq = 2000;
-     }
-     // Mandamos los datos al motor
+     //Mandamos los datos al motor
      tras_izq.writeMicroseconds(pwmTras_izq);
      Serial.print(pwmTras_izq);
      Serial.print("||");
@@ -207,47 +199,47 @@ void loop() {
 
      previous_error = error; //Remember to store the previous error.
 
-     if(respuesta == "giro derecha")
-     {
-       del_izq.writeMicroseconds(throttle - pwmDel_izq); //MP1
-       del_der.writeMicroseconds(throttle + pwmDel_der); //MP2
-       tras_izq.writeMicroseconds(throttle - pwmTras_der); //MP3
-       tras_der.writeMicroseconds(throttle + pwmTras_izq); //MP4
-     }
-     if(respuesta == "giro izquierda")
-     {
-       del_izq.writeMicroseconds(throttle + pwmDel_izq); //MP1
-       del_der.writeMicroseconds(throttle - pwmDel_der); //MP2
-       tras_izq.writeMicroseconds(throttle + pwmTras_der); //MP3
-       tras_der.writeMicroseconds(throttle - pwmTras_izq); //MP4
-     }
-     if(respuesta == "rotar derecha")
-     {
-       del_izq.writeMicroseconds(throttle - pwmDel_izq); //MP1
-       del_der.writeMicroseconds(throttle - pwmDel_der); //MP2
-       tras_izq.writeMicroseconds(throttle + pwmTras_der); //MP3
-       tras_der.writeMicroseconds(throttle + pwmTras_izq); //MP4
-     }
-     if(respuesta == "rotar izquierda")
-     {
-       del_izq.writeMicroseconds(throttle + pwmDel_izq); //MP1
-       del_der.writeMicroseconds(throttle + pwmDel_der); //MP2
-       tras_izq.writeMicroseconds(throttle - pwmTras_der); //MP3
-       tras_der.writeMicroseconds(throttle - pwmTras_izq); //MP4
-     }
-     if(respuesta == "avanzar")
-     {
-       del_izq.writeMicroseconds(throttle - pwmDel_izq); //MP1
-       del_der.writeMicroseconds(throttle + pwmDel_der); //MP2
-       tras_izq.writeMicroseconds(throttle + pwmTras_der); //MP3
-       tras_der.writeMicroseconds(throttle - pwmTras_izq); //MP4
-     }
-     if(respuesta == "retroceder")
-     {
-       del_izq.writeMicroseconds(throttle + pwmDel_izq); //MP1
-       del_der.writeMicroseconds(throttle - pwmDel_der); //MP2
-       tras_izq.writeMicroseconds(throttle - pwmTras_der); //MP3
-       tras_der.writeMicroseconds(throttle + pwmTras_izq); //MP4
-     }
+     // if(respuesta == "giro derecha")
+     // {
+     //   del_izq.writeMicroseconds(throttle - pwmDel_izq); //MP1
+     //   del_der.writeMicroseconds(throttle + pwmDel_der); //MP2
+     //   tras_izq.writeMicroseconds(throttle - pwmTras_der); //MP3
+     //   tras_der.writeMicroseconds(throttle + pwmTras_izq); //MP4
+     // }
+     // if(respuesta == "giro izquierda")
+     // {
+     //   del_izq.writeMicroseconds(throttle + pwmDel_izq); //MP1
+     //   del_der.writeMicroseconds(throttle - pwmDel_der); //MP2
+     //   tras_izq.writeMicroseconds(throttle + pwmTras_der); //MP3
+     //   tras_der.writeMicroseconds(throttle - pwmTras_izq); //MP4
+     // }
+     // if(respuesta == "rotar derecha")
+     // {
+     //   del_izq.writeMicroseconds(throttle - pwmDel_izq); //MP1
+     //   del_der.writeMicroseconds(throttle - pwmDel_der); //MP2
+     //   tras_izq.writeMicroseconds(throttle + pwmTras_der); //MP3
+     //   tras_der.writeMicroseconds(throttle + pwmTras_izq); //MP4
+     // }
+     // if(respuesta == "rotar izquierda")
+     // {
+     //   del_izq.writeMicroseconds(throttle + pwmDel_izq); //MP1
+     //   del_der.writeMicroseconds(throttle + pwmDel_der); //MP2
+     //   tras_izq.writeMicroseconds(throttle - pwmTras_der); //MP3
+     //   tras_der.writeMicroseconds(throttle - pwmTras_izq); //MP4
+     // }
+     // if(respuesta == "avanzar")
+     // {
+     //   del_izq.writeMicroseconds(throttle - pwmDel_izq); //MP1
+     //   del_der.writeMicroseconds(throttle + pwmDel_der); //MP2
+     //   tras_izq.writeMicroseconds(throttle + pwmTras_der); //MP3
+     //   tras_der.writeMicroseconds(throttle - pwmTras_izq); //MP4
+     // }
+     // if(respuesta == "retroceder")
+     // {
+     //   del_izq.writeMicroseconds(throttle + pwmDel_izq); //MP1
+     //   del_der.writeMicroseconds(throttle - pwmDel_der); //MP2
+     //   tras_izq.writeMicroseconds(throttle - pwmTras_der); //MP3
+     //   tras_der.writeMicroseconds(throttle + pwmTras_izq); //MP4
+     // }
 
 }//end of loop void
