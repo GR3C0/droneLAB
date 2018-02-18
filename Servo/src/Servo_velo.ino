@@ -15,7 +15,6 @@
 #define seis 1600
 #define siete 1700
 #define ocho 1800
-
 #define nueve 1900
 #define esp 1000
 
@@ -204,14 +203,14 @@ void loop() {
 //  */
 void test()
 {
-    for (int i=0; i<=180; i++) {
+    for (int i=1300; i<=2000; i++) {
         Serial.print("Speed = ");
         Serial.println(i);
 
-        motor_izq.write(i);
-        motor_der.write(i);
-        motor_izq_2.write(i);
-        motor_der_2.write(i);
+        motor_izq.writeMicroseconds(i);
+        motor_der.writeMicroseconds(i);
+        motor_izq_2.writeMicroseconds(i);
+        motor_der_2.writeMicroseconds(i);
 
         delay(200);
     }

@@ -1,63 +1,181 @@
 #include <Wire.h>
 #include <Servo.h>
+#define MIN 1400
+#define MAX 2000
 
-Servo del_der;
-Servo del_izq;
-Servo tras_der;
-Servo tras_izq;
+Servo L_F_prop;
+Servo L_B_prop;
+Servo R_F_prop;
+Servo R_B_prop;
 
-// El MPU6050 envia los datos es int16_t
-
-int16_t Acc_rawX, Acc_rawY, Acc_rawZ,Gyr_rawX, Gyr_rawY, Gyr_rawZ;
-
-
-float Acceleration_angle[2];
-float Gyro_angle[2];
-float Total_angle[2];
-
+int input_YAW;
+int input_PITCH;
+int input_ROLL;
+int input_THROTTLE = 1400;
 
 float elapsedTime, time, timePrev;
-int i;
+int gyro_error = 0;
+float Gyr_rawX, Gyr_rawY, Gyr_rawZ;
+float Gyro_angle_x, Gyro_angle_y;
+float Gyro_raw_error_x, Gyro_raw_error_y;
+
+// Variables del acelerometro
+int acc_error = 0;
 float rad_to_deg = 180/3.141592654;
+float Acc_rawX, Acc_rawY, Acc_rawZ;
+float Acc_angle_x, Acc_angle_y;
+float Acc_angle_error_x, Acc_angle_error_y;
 
-float PID, pwmDel_der, pwmDel_izq, pwmTras_der, pwmTras_izq, error, previous_error;
-float pid_p=0;
-float pid_i=0;
-float pid_d=0;
-/////////////////PID CONSTANTS/////////////////
-double kp=3.55;//3.55
-double ki=0.003;//0.003
-double kd=2.0;//2.05
-///////////////////////////////////////////////
+float Total_angle_x, Total_angle_y;
 
-double throttle=1700; // Valor inicial de arranque de los motores
-float desired_angle = 0;
+int i;
+int mot_activated = 0;
+long activate_count = 0;
+long des_activate_count = 0;
+
+//////////////////////////////PID FOR ROLL///////////////////////////
+float roll_PID, pwm_L_F, pwm_L_B, pwm_R_F, pwm_R_B, roll_error, roll_previous_error;
+float roll_pid_p=0;
+float roll_pid_i=0;
+float roll_pid_d=0;
+///////////////////////////////ROLL PID CONSTANTS////////////////////
+double roll_kp=3.90;//3.55
+double roll_ki=0.007;//0.003
+double roll_kd=2.5;//2.05
+float roll_desired_angle = 0;
+
+//////////////////////////////PID FOR PITCH//////////////////////////
+float pitch_PID, pitch_error, pitch_previous_error;
+float pitch_pid_p=0;
+float pitch_pid_i=0;
+float pitch_pid_d=0;
+///////////////////////////////PITCH PID CONSTANTS///////////////////
+double pitch_kp=3.90;//3.55
+double pitch_ki=0.007;//0.003
+double pitch_kd=2.5;//2.05
+float pitch_desired_angle = 0;
 
 
 void setup() {
-  Wire.begin();
-  Wire.beginTransmission(0x68);
-  Wire.write(0x6B);
-  Wire.write(0);
-  Wire.endTransmission(true);
-  Serial.begin(250000);
 
   time = millis(); // Medición del tiempo
   // Se envia el valor minimo al ESC para que se calibre
-  del_izq.attach(3, 1600, 2000);
-  del_der.attach(5, 1600, 2000);
-  tras_der.attach(6, 1600, 2000);
-  tras_izq.attach(7, 1600, 2000);
-}
+  L_F_prop.attach(3, 1300, 2000);
+  L_B_prop.attach(5, 1300, 2000);
+  R_F_prop.attach(6, 1300, 2000);
+  R_B_prop.attach(7, 1300, 2000);
+
+  // Conexion con el MPU6050
+  Wire.begin();
+  Wire.beginTransmission(0x68);
+  Wire.write(0x6B);
+  Wire.write(0x00);
+  Wire.endTransmission(true);
+
+  Wire.begin();
+  Wire.beginTransmission(0x68);
+  Wire.write(0x1B);
+  Wire.write(0x10);
+  Wire.endTransmission(true);
+
+  Wire.begin();
+  Wire.beginTransmission(0x68);
+  Wire.write(0x1C);
+  Wire.write(0x10);
+  Wire.endTransmission(true);
+
+  Serial.begin(9600);
+  delay(1000);
+  time = millis();
+
+
+  // Calculamos el error del giroscopio antes del loop
+  // Le damos un valor de 200, será suficiente
+  if(gyro_error==0)
+  {
+    for(int i=0; i<200; i++)
+    {
+      Wire.beginTransmission(0x68);
+      Wire.write(0x43);
+      Wire.endTransmission(false);
+      Wire.requestFrom(0x68,4,true);
+
+      Gyr_rawX=Wire.read()<<8|Wire.read();
+      Gyr_rawY=Wire.read()<<8|Wire.read();
+
+      /*---X---*/
+      Gyro_raw_error_x = Gyro_raw_error_x + (Gyr_rawX/32.8);
+      /*---Y---*/
+      Gyro_raw_error_y = Gyro_raw_error_y + (Gyr_rawY/32.8);
+      if(i==199)
+      {
+        Gyro_raw_error_x = Gyro_raw_error_x/200;
+        Gyro_raw_error_y = Gyro_raw_error_y/200;
+        gyro_error=1;
+      }
+    }
+  }
+
+  // Calculamos el error del acelerometro antes del loop
+  // Le damos un valor de 200, con eso será suficiente
+
+  if(acc_error==0)
+  {
+    for(int a=0; a<200; a++)
+    {
+      Wire.beginTransmission(0x68);
+      Wire.write(0x3B);
+      Wire.endTransmission(false);
+      Wire.requestFrom(0x68,6,true);
+
+      Acc_rawX=(Wire.read()<<8|Wire.read())/4096.0 ;  // Cada valor necesita dos registros
+      Acc_rawY=(Wire.read()<<8|Wire.read())/4096.0 ;
+      Acc_rawZ=(Wire.read()<<8|Wire.read())/4096.0 ;
+
+
+      /*---X---*/
+      Acc_angle_error_x = Acc_angle_error_x + ((atan((Acc_rawY)/sqrt(pow((Acc_rawX),2) + pow((Acc_rawZ),2)))*rad_to_deg));
+      /*---Y---*/
+      Acc_angle_error_y = Acc_angle_error_y + ((atan(-1*(Acc_rawX)/sqrt(pow((Acc_rawY),2) + pow((Acc_rawZ),2)))*rad_to_deg));
+
+      if(a==199)
+      {
+        Acc_angle_error_x = Acc_angle_error_x/200;
+        Acc_angle_error_y = Acc_angle_error_y/200;
+        acc_error=1;
+      }
+    }
+  }
+}// Fin del setup
+
 
 void loop() {
 
-    while (!Serial.available()); // Comprueba si el puerto para leer datos está abierto
+    // while (!Serial.available()); // Comprueba si el puerto para leer datos está abierto
 
 /////////////////////////////I M U/////////////////////////////////////
     timePrev = time;
     time = millis(); // Se lee otra vez el tiempo
     elapsedTime = (time - timePrev) / 1000; // Se para a segundos
+
+    // Lectura del giroscopio
+     Wire.beginTransmission(0x68);
+     Wire.write(0x43);
+     Wire.endTransmission(false);
+     Wire.requestFrom(0x68,4,true);
+
+     Gyr_rawX = Wire.read()<<8|Wire.read();
+     Gyr_rawY = Wire.read()<<8|Wire.read();
+
+     /*---X---*/
+     Gyr_rawX = (Gyr_rawX/32.8) - Gyro_raw_error_x;
+     /*---Y---*/
+     Gyr_rawY = (Gyr_rawY/32.8) - Gyro_raw_error_y;
+
+     /*---X---*/
+     Gyro_angle_x = Gyr_rawX*elapsedTime;
+     /*---X---*/
+     Gyro_angle_y = Gyr_rawY*elapsedTime;
 
      Wire.beginTransmission(0x68);
      Wire.write(0x3B);
@@ -65,139 +183,117 @@ void loop() {
      Wire.requestFrom(0x68,6,true);
 
      // Lectura de datos
-     Acc_rawX=Wire.read()<<8|Wire.read(); // Cada valor necesita dos regristros
-     Acc_rawY=Wire.read()<<8|Wire.read();
-     Acc_rawZ=Wire.read()<<8|Wire.read();
-
-     // -------------------Calculo de las ecuaciones de euler------------------
-
-     // Dividimos los valores obtenidos con el sensor entre 16384 para que nos de la acceleracion
-     // Calculamos los angulos en grados
-     // Aplicamos la formula de Euler atan() = arctangente
-     /*---X---*/
-     Acceleration_angle[0] = atan((Acc_rawY/16384.0)/sqrt(pow((Acc_rawX/16384.0),2) + pow((Acc_rawZ/16384.0),2)))*rad_to_deg;
-     /*---Y---*/
-     Acceleration_angle[1] = atan(-1*(Acc_rawX/16384.0)/sqrt(pow((Acc_rawY/16384.0),2) + pow((Acc_rawZ/16384.0),2)))*rad_to_deg;
-
-     Wire.beginTransmission(0x68);
-     Wire.write(0x43);
-     Wire.endTransmission(false);
-     Wire.requestFrom(0x68,4,true); // 4 Registros
-
-     Gyr_rawX=Wire.read()<<8|Wire.read();
-     Gyr_rawY=Wire.read()<<8|Wire.read();
-
-     // Dividimos los datos que recibimos entre 131 por que es el dato que nos da el sensor
+     Acc_rawX=(Wire.read()<<8|Wire.read())/4096.0 ;
+     Acc_rawY=(Wire.read()<<8|Wire.read())/4096.0 ;
+     Acc_rawZ=(Wire.read()<<8|Wire.read())/4096.0 ;
 
      /*---X---*/
-     Gyro_angle[0] = Gyr_rawX/131.0;
+     Acc_angle_x = (atan((Acc_rawY)/sqrt(pow((Acc_rawX),2) + pow((Acc_rawZ),2)))*rad_to_deg) - Acc_angle_error_x;
      /*---Y---*/
-     Gyro_angle[1] = Gyr_rawY/131.0;
+     Acc_angle_y = (atan(-1*(Acc_rawX)/sqrt(pow((Acc_rawY),2) + pow((Acc_rawZ),2)))*rad_to_deg) - Acc_angle_error_y;
 
-     // Multiplicamos el angulo de giro por el tiempo
-     // Aplicamos el filtro, añadimos la aceleracion y lo multiplicamos por 0.98
-
+     //////////////////////////////////////Total angle and filter/////////////////////////////////////
      /*---X axis angle---*/
-     Total_angle[0] = 0.98 *(Total_angle[0] + Gyro_angle[0]*elapsedTime) + 0.02*Acceleration_angle[0];
+     Total_angle_x = 0.98 *(Total_angle_x + Gyro_angle_x) + 0.02*Acc_angle_x;
      /*---Y axis angle---*/
-     Total_angle[1] = 0.98 *(Total_angle[1] + Gyro_angle[1]*elapsedTime) + 0.02*Acceleration_angle[1];
+     Total_angle_y = 0.98 *(Total_angle_y + Gyro_angle_y) + 0.02*Acc_angle_y;
 
-     // Tenemos los angulos entre -100º y 100º
-     //Serial.println(Total_angle[1]);
 
      /*///////////////////////////P I D///////////////////////////////////*/
+     roll_desired_angle = map(input_ROLL,1000,2000,-10,10);
+     pitch_desired_angle = map(input_PITCH,1000,2000,-10,10);
 
      // Calculamos el error
-     error = Total_angle[1] - desired_angle;
+     roll_error = Total_angle_y - roll_desired_angle;
+     pitch_error = Total_angle_x - pitch_desired_angle;
 
-     // La constante multiplicada por el error
-     pid_p = kp*error;
+     // Calculamos la kp
+     roll_pid_p = roll_kp*roll_error;
+     pitch_pid_p = pitch_kp*pitch_error;
 
-     // La integral solo debe funcionar si nos acercamos al angulo 0, por eso solo lo usamos
-     // En un angulo entre -3 y 3.
-     if(-5 < error and error < 5)
+     if(-3 < roll_error and roll_error <3)
      {
-       pid_i = pid_i+(ki*error);
+       roll_pid_i = roll_pid_i+(roll_ki*roll_error);
+     }
+     if(-3 < pitch_error and pitch_error <3)
+     {
+       pitch_pid_i = pitch_pid_i+(pitch_ki*pitch_error);
      }
 
-     // La derivada se encarga de la velocidad de corrección del error
+     // Calculamos la derivada
+     roll_pid_d = roll_kd*((roll_error - roll_previous_error)/elapsedTime);
+     pitch_pid_d = pitch_kd*((pitch_error - pitch_previous_error)/elapsedTime);
 
-     pid_d = kd*((error - previous_error)/elapsedTime);
+     // Calculamos el PID global
+     roll_PID = roll_pid_p + roll_pid_i + roll_pid_d;
+     pitch_PID = pitch_pid_p + pitch_pid_i + pitch_pid_d;
 
-     // El PID es la suma de las tres operaciones
-     PID = pid_p + pid_i + pid_d;
-
-     if(PID < -1000)
-     {
-       PID=1000; // -=
-     }
-     if(PID > 1000)
-     {
-       PID=1000; // +=
-     }
-
-     //Sumamos el valor minimo + el PID
-     pwmDel_der = throttle + PID;
-     pwmDel_izq = throttle + PID;
-     pwmTras_der = throttle - PID;
-     pwmTras_izq = throttle - PID;
+     if(roll_PID < -1000){roll_PID=-1000;}
+     if(roll_PID > 2000) {roll_PID=2000;}
+     if(pitch_PID < -1000){pitch_PID=-1000;}
+     if(pitch_PID > 2000) {pitch_PID=2000;}
 
 
-     // Hacemos que no se pasen los datos
-     //Delantero Derecho
-     if(pwmDel_der < 1700)
-     {
-       pwmDel_der = 1700;
-     }
-     if(pwmDel_der > 2000)
-     {
-       pwmDel_der = 2000;
-     }
-     //Delantero izquierdo
-     if(pwmDel_izq < 1700)
-     {
-       pwmDel_izq = 1700;
-     }
-     if(pwmDel_izq > 2000)
-     {
-       pwmDel_izq = 2000;
-     }
-     //Trasero Derecho
-     if(pwmTras_der < 1700)
-     {
-       pwmTras_der = 1700;
-     }
-     if(pwmTras_der > 2000)
-     {
-       pwmTras_der = 2000;
-     }
-     //Trasero izquierdo
-     if(pwmTras_izq < 1700)
-     {
-       pwmTras_izq = 1700;
-     }
-     if(pwmTras_izq > 2000)
-     {
-       pwmTras_izq = 2000;
-     }
-     //Mandamos los datos al motor
-     tras_izq.writeMicroseconds(pwmTras_izq);
-     Serial.print(pwmTras_izq);
-     Serial.print("||");
+     // Finalmente calculamos la velocidad global
+     pwm_R_F  = input_THROTTLE - roll_PID - pitch_PID;
+     pwm_R_B  = input_THROTTLE - roll_PID + pitch_PID;
+     pwm_L_B  = input_THROTTLE + roll_PID + pitch_PID;
+     pwm_L_F  = input_THROTTLE + roll_PID - pitch_PID;
 
-     tras_der.writeMicroseconds(pwmTras_der);
-     Serial.println(pwmTras_der);
-     Serial.print("||");
+     if(pwm_R_F < MIN)
+     {
+       pwm_R_F= MIN;
+     }
+     if(pwm_R_F > MAX)
+     {
+       pwm_R_F=MAX;
+     }
 
-     del_izq.writeMicroseconds(pwmDel_izq);
-     Serial.print(pwmDel_izq);
-     Serial.print("||");
+     //Left front
+     if(pwm_L_F < MIN)
+     {
+       pwm_L_F= MIN;
+     }
+     if(pwm_L_F > MAX)
+     {
+       pwm_L_F = MAX;
+     }
 
-     del_der.writeMicroseconds(pwmDel_der);
-     Serial.print(pwmDel_der);
-     Serial.print("||");
+     //Right back
+     if(pwm_R_B < MIN)
+     {
+       pwm_R_B= MIN;
+     }
+     if(pwm_R_B > MAX)
+     {
+       pwm_R_B=MAX;
+     }
 
-     previous_error = error; //Remember to store the previous error.
+     //Left back
+     if(pwm_L_B < MIN)
+     {
+       pwm_L_B= MIN;
+     }
+     if(pwm_L_B > MAX)
+     {
+       pwm_L_B=MAX;
+     }
+
+     Serial.print(pwm_L_B);
+     Serial.print(" | | ");
+     Serial.print(pwm_L_F);
+     Serial.print(" | | ");
+     Serial.print(pwm_R_B);
+     Serial.print(" | | ");
+     Serial.println(pwm_R_F);
+
+     roll_previous_error = roll_error; //Remember to store the previous error.
+     pitch_previous_error = pitch_error; //Remember to store the previous error.
+
+     L_F_prop.writeMicroseconds(pwm_L_F);
+     L_B_prop.writeMicroseconds(pwm_L_B);
+     R_F_prop.writeMicroseconds(pwm_R_F);
+     R_B_prop.writeMicroseconds(pwm_R_B);
 
      // if(respuesta == "giro derecha")
      // {
@@ -242,4 +338,4 @@ void loop() {
      //   tras_der.writeMicroseconds(throttle + pwmTras_izq); //MP4
      // }
 
-}//end of loop void
+}
