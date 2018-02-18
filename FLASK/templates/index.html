@@ -1,8 +1,8 @@
 <!doctype html>
 <title>Hello from Flask</title>
-<form action="/arduino" method="post">
-<input type="submit" name="encendido" value="Do Something">
-<input type="submit" name="apagado" value="Do Something Else">
+<form action="/" method="POST">
+<input type="submit" name="encender" value="Encendido">
+<input type="submit" name="apagar" value="Apagado">
 </form>
 {% if name %}
   <h1>Hello {{ name }}!</h1>

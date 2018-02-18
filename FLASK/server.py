@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 import serial # Libreria para la comunicacion con arduino
 
 app = Flask(__name__, static_url_path='')
@@ -7,18 +7,6 @@ app = Flask(__name__, static_url_path='')
 def setupSerial():
 	global arduino
 	arduino = serial.Serial('/dev/cu.wchusbserial1420', 9600)
-
-@app.route('/arduino', methods = ['POST'])
-def contact():
-
-        # if 'Do Something' in request.form:
-        #     print("ARRIBA")
-        #     arduino.wite('H')
-        #     return render_template('index.html')
-		#
-        # elif 'Do Something Else' in request.form:
-        #     arduino.write('L')
-        #     return render_template('index.html')
 
 @app.route('/')
 def datosArduino():
@@ -31,6 +19,26 @@ def page(name=None):
     print("Render uno")
     #return contact()
     return render_template('index.html', name=name)
+
+@app.route('/', methods=['GET', 'POST'])
+def contact(form=None): # Recoge datos del boton
+	if request.method == 'POST':
+		if 'encender' in request.form: # Si el boton se activa
+			print("Encendido")
+			arduino.write("H".encode('utf-8')) # Enviar datos a la Arduino
+			return render_template('index.html', form=form)
+
+		elif 'apagar' in request.form:
+			print("Apagado")
+			arduino.write("L".encode('utf-8'))
+			return render_template('index.html', form=form)
+
+		else:
+			print('No pasa nada')
+			return render_template('index.html', form=form)
+
+	elif request.method == 'GET':
+		return render_template('index.html', form=form)
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=80, debug=True) # Nos permite acceder fuera de la raspi
