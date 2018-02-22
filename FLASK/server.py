@@ -8,19 +8,7 @@ def setupSerial():
 	global arduino
 	arduino = serial.Serial('/dev/cu.wchusbserial1420', 9600)
 
-@app.route('/')
-def datosArduino():
-    print("Enviando datos a la arduino")
-    return page()
-
-
-@app.route("/") # La raíz
-def page(name=None):
-    print("Render uno")
-    #return contact()
-    return render_template('index.html', name=name)
-
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST']) # La raíz
 def contact(form=None): # Recoge datos del boton
 	if request.method == 'POST':
 		if 'encender' in request.form: # Si el boton se activa
