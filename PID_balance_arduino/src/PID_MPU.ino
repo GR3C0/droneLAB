@@ -1,6 +1,6 @@
 #include <Wire.h>
 #include <Servo.h>
-#define MIN 1400
+#define MIN 1600
 #define MAX 2000
 
 Servo L_F_prop;
@@ -56,8 +56,47 @@ double pitch_kd=2.5;//2.05
 float pitch_desired_angle = 0;
 
 
-void setup() {
+bool Calibrar(){
+  Serial.println("Sending 180 throttle");
+  L_F_prop.write(180);
+  R_F_prop.write(180);
+  L_B_prop.write(180);
+  R_B_prop.write(180);
+  delay(2000);
+  Serial.println("Conecta la bateria");
+  delay(8000);
+  Serial.println("Dale al 0 para empezar");
 
+  if(Serial.available())
+  {
+    char data;
+    data = Serial.read();
+    switch (data)
+    { // 0
+      case 48:
+              for (int i=1350; i<=2000; i++) {
+                  Serial.print("Speed = ");
+                  Serial.println(i);
+
+                  L_F_prop.writeMicroseconds(i);
+                  R_F_prop.writeMicroseconds(i);
+                  L_B_prop.writeMicroseconds(i);
+                  R_B_prop.writeMicroseconds(i);
+
+                  delay(200);
+                }
+                Serial.println("STOP");
+                L_F_prop.write(0);
+                R_F_prop.write(0);
+                L_B_prop.write(0);
+                R_B_prop.write(0);
+                return true;
+    }
+  }
+}
+
+
+void setup() {
   time = millis(); // Medición del tiempo
   // Se envia el valor minimo al ESC para que se calibre
   L_F_prop.attach(3, 1300, 2000);
@@ -85,6 +124,12 @@ void setup() {
   Wire.endTransmission(true);
 
   Serial.begin(9600);
+
+  // while(Calibrar() == false)  // Función para la calibración
+  // {
+  //   Calibrar();
+  // }
+
   delay(1000);
   time = millis();
 
