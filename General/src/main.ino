@@ -1,7 +1,7 @@
 // Programa general para droneLAB
 
 // Librerias generales
-#include "Configuracion.h"
+#include "Configuracion.h" // Archivo con todos los pines definidos, consultar en caso de duda
 #include <NewPing.h>
 #include <Wire.h>
 #include <imumaths.h>
@@ -32,13 +32,28 @@ void setup()
 	Wire.endTransmission(true);
 	Serial.begin(250000);
 	// Activacion de los motores y envio del valor minimo y maximo
-	motor_izq.attach(3, 1200, 2000);
-	motor_izq_2.attach(10, 1200, 2000);
-	motor_der_2.attach(6, 1200, 2000);
+	motor_del_izq.attach(MOTOR_DEL_IZQ, MOTOR_MAX_LEVEL, MOTOR_MIN_LEVEL);
+	motor_del_der.attach(MOTOR_DEL_DER, MOTOR_MAX_LEVEL, MOTOR_MIN_LEVEL);
+	motor_tras_izq.attach(MOTOR_TRAS_IZQ, MOTOR_MAX_LEVEL, MOTOR_MIN_LEVEL);
+	motor_tras_der.attach(MOTOR_TRAS_DER, MOTOR_MIN_LEVEL, MOTOR_MAX_LEVEL);
+
+	// Armar motores
+	motor_del_izq.write(180);
+	motor_del_der.write(180);
+	motor_tras_izq.write(180);
+	motor_tras_der.write(180);
+
+	delay(3000); // Delay de 3 segundos para que se lo piense
+
+	motor_del_izq.write(0);
+	motor_del_der.write(0);
+	motor_tras_izq.write(0);
+	motor_tras_der.write(0);
 
 	time = millis(); // Medición del tiempo
 	// calibracion del ESC
-	calibracion();
+	//calibracion(); // Primero se calibra
+	PID(); // Luego se activa el PID
 }
 
 void loop()
@@ -50,26 +65,15 @@ void loop()
 		switch (comando)
 		{
 			case 48:
-			{
-				
-				break;
-			}
+							{
+								break;
+							}
 
 		}
   }
 }
 
-void rozamiento_cero()
-{
-  // unsigned long t_inicio = millis(); // Obtiene el tiempo de ejecución del programa al iniciarse, este valor es 0
-  // unsigned long t_final; // Variable que almacenará el tiempo final para restarlo al inicia
-  // // Aquí va el tema de motores
-  // unsigned long aceleracion = t_final-t_inicio;
-  // float fuerza_motores;
-  // fuerza_motores = aceleracion * MASA_DRONE;
-}
-
-void sonars()
+void sonars() // TODO: implementar sonares a los movimientos, código de uso
 {
   for(int i = 0; i < SONAR_NUM; i++)
 	{
@@ -80,8 +84,6 @@ void sonars()
       Serial.print("||");
 
   }
-
-
 }
 
 void pid()
@@ -90,7 +92,7 @@ void pid()
 /////////////////////////////I M U/////////////////////////////////////
 	timePrev = time;
   time = millis(); // Se lee otra vez el tiempo
-  elapsedTime = (time - timePrev) / 1000; // Se para a segundos
+  elapsedTime = (time - timePrev) / 1000; // Se pasa a segundos
 
    Wire.beginTransmission(0x68);
 	 Wire.write(0x3B);
@@ -218,7 +220,7 @@ void pid()
    motor_der.writeMicroseconds(pwmRight);
 	 motor_der_2.writeMicroseconds(pwmRight2);
    Serial.println(pwmRight);
-   previous_error = error; //Remember to store the previous error.
+   previous_error = error; // Almacena el error previo
 
 }
 

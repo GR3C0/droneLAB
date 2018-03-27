@@ -8,7 +8,6 @@
 /*---------NIVELES VELOCIDAD MOTORES----------*/
 #define MOTOR_ZERO_LEVEL 1000
 #define MOTOR_MIN_LEVEL 1100
-#define MOTOR_MEDIUM_LEVEL 1500
 #define MOTOR_MAX_LEVEL 2000
 
 //---------------PINES MOTORES----------------
