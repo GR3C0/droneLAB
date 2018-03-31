@@ -35,7 +35,7 @@
 #define ECHO_SONAR_4 17 // ECHO sonar tras_izq
 
 #define SONAR_NUM 	 5 // Numero de Sonars
-#define MAX_DISTANCE 450 // Distancia máxima para los sonars
+#define MAX_DISTANCE 100 // Distancia máxima para los sonars
 
 //-----------------PINES LEDS---------------------
 #define LED_VERDE 36
@@ -43,29 +43,51 @@
 #define LED_AMARILLO 38
 
 //-----------------PID ESPECIFICACIÓNES-----------
-// El MPU6050 envia los datos es int16_t
+// El MPU6050 envia los datos en int16_t
 
-int16_t Acc_rawX, Acc_rawY, Acc_rawZ,Gyr_rawX, Gyr_rawY, Gyr_rawZ;
-
-
-float Acceleration_angle[2];
-float Gyro_angle[2];
-float Total_angle[2];
-
+int input_YAW;
+int input_PITCH;
+int input_ROLL;
+int input_THROTTLE = 1400;
 
 float elapsedTime, time, timePrev;
-int i;
+int gyro_error = 0;
+float Gyr_rawX, Gyr_rawY, Gyr_rawZ;
+float Gyro_angle_x, Gyro_angle_y;
+float Gyro_raw_error_x, Gyro_raw_error_y;
+
+// Variables del acelerometro
+int acc_error = 0;
 float rad_to_deg = 180/3.141592654;
+float Acc_rawX, Acc_rawY, Acc_rawZ;
+float Acc_angle_x, Acc_angle_y;
+float Acc_angle_error_x, Acc_angle_error_y;
 
-float PID, pwmLeft, pwmLeft2, pwmRight2, pwmRight, error, previous_error;
-float pid_p=0;
-float pid_i=0;
-float pid_d=0;
-/////////////////PID CONSTANTS/////////////////
-double kp=3.0;//3.55
-double ki=0.003;//0.003
-double kd=2.0;//2.05
-///////////////////////////////////////////////
+float Total_angle_x, Total_angle_y;
 
-double throttle=1200; // Valor inicial de arranque de los motores
-float desired_angle = 0;
+int i;
+int mot_activated = 0;
+long activate_count = 0;
+long des_activate_count = 0;
+
+//////////////////////////////PID FOR ROLL///////////////////////////
+float roll_PID, pwm_L_F, pwm_L_B, pwm_R_F, pwm_R_B, roll_error, roll_previous_error;
+float roll_pid_p=0;
+float roll_pid_i=0;
+float roll_pid_d=0;
+///////////////////////////////ROLL PID CONSTANTS////////////////////
+double roll_kp=3.90;//3.55
+double roll_ki=0.007;//0.003
+double roll_kd=2.5;//2.05
+float roll_desired_angle = 0;
+
+//////////////////////////////PID FOR PITCH//////////////////////////
+float pitch_PID, pitch_error, pitch_previous_error;
+float pitch_pid_p=0;
+float pitch_pid_i=0;
+float pitch_pid_d=0;
+///////////////////////////////PITCH PID CONSTANTS///////////////////
+double pitch_kp=3.90;//3.55
+double pitch_ki=0.007;//0.003
+double pitch_kd=2.5;//2.05
+float pitch_desired_angle = 0;
