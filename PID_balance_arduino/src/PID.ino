@@ -1,159 +1,192 @@
-// #include <Wire.h>
-// #include <Servo.h>
-// #include <Adafruit_Sensor.h>
-// #include <Adafruit_BNO055.h>
-// #include <utility/imumaths.h>
-//
-// #define MOTOR_IZQ 4
-// #define MOTOR_DER 3
-//
-// // Declaración de motores
-// Servo motor_der;
-// Servo motor_izq;
-//
-// Adafruit_BNO055 bno = Adafruit_BNO055(55); // Iniciar el sensor
-//
-// float Angulo_aceleracion[2];
-// float Angulo_giro[2];
-// float Angulo_total[2];
-// float giro_z, giro_y, acel_z, acel_y;
-//
-// float T_transcurrido, time, timePrev;
-// int i;
-//
-// float PID, pwmIzq, pwmDer, error, error_previo;
-// float pid_p=0;
-// float pid_i=0;
-// float pid_d=0;
-// /////////////////PID CONSTANTS/////////////////
-// double kp=3.55;//3.55 Amplia o reduce el error
-// double ki=0.003;//0.003 Acumula el error
-// double kd=2.05;//2.05 Evalua el incremento del error
-// ///////////////////////////////////////////////
-//
-// double velocidad=1300; // Velocidad inicial de los motores
-// float angulo_deseado = 0; // Angulo que queremos
-//
-// void setup()
-// {
-//   Serial.begin(9600);
-//   if(!bno.begin()) //Prueba de conexión del Adafruit_Sensor
-//   {
-//     Serial.print("No detectado");
-//     while(1);
-//   }
-//   bno.setExtCrystalUse(true);
-//   motor_der.attach(MOTOR_DER); //attatch the right motor to pin 3
-//   motor_izq.attach(MOTOR_IZQ);  //attatch the left motor to pin 5
-//
-//   time = millis(); // Empieza a contar el tiempo
-//   motor_izq.writeMicroseconds(1000); // Enviamos el valor minimo a los motores para que se enciendan
-//   motor_der.writeMicroseconds(1000);
-//   delay(1000); // Le damos 7 segundos para empezar
-//
-// }
-//
-// void loop()
-// {
-//   /////////////////////////////I M U/////////////////////////////////////
-//   timePrev = time;  // Almacenamos otra vez el tiempo
-//   time = millis();  // Lectura del tiempo actual
-//   T_transcurrido = (time - timePrev) / 1000; // Se calcula el tiempo pasado en segundos
-//
-//   // Lectura de la aceleracion y los angulos
-//   imu::Vector<3> acelerometro = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
-//   imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
-//   imu::Vector<3> giroscopio = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
-//
-//
-//   // Obtenemos los grados
-//
-//   Serial.print(euler.x());
-//   Serial.print("||");
-//   Serial.print(euler.y());
-//   Serial.print("||");
-//   Serial.println(euler.z());
-//
-//   // Datos del giroscopio pasados a grados/s
-//
-//   // giro_z = giroscopio.z()*57.2958;
-//   // giro_y = giroscopio.y()*57.2958;
-//   giro_z = euler.z();
-//   giro_y = euler.y();
-//
-//   acel_z = acelerometro.z();
-//   acel_y = acelerometro.y();
-//
-//   Angulo_aceleracion[0] = acel_z;
-//   Angulo_aceleracion[1] = acel_y;
-//   Angulo_giro[0] = giro_z;
-//   Angulo_giro[1] = giro_y;
-//
-//   /*---Ángulo Z---*/
-//   // Angulo_total[0] = 0.98 *(Angulo_total[0] + Angulo_giro[0]*T_transcurrido) + 0.02*Angulo_aceleracion[0];
-//   /*---Ángulo Y---*/
-//   // Angulo_total[1] = 0.98 *(Angulo_total[1] + Angulo_giro[1]*T_transcurrido) + 0.02*Angulo_aceleracion[1];
-//
-//   // Almacenamos el error
-//   // error = Angulo_total[0]-angulo_deseado;
-//   error = Angulo_giro[0] - angulo_deseado;
-//
-//   // Esta es la constante que solo hace falta multiplicarla por el error
-//   pid_p = kp*error;
-//
-//   // La integral solo debe actuar si el error es mínimo
-//   if(-3 < error || error < 3)
-//   {
-//     pid_i = pid_i+(ki*error);
-//   }
-//
-//   // La derivada
-//   pid_d = kd*((error - error_previo)/T_transcurrido);
-//
-//   // Almacenamos todo el PID
-//   PID = pid_p + pid_i + pid_d;
-//
-//   // Como la velocidad de los motores solo puede ir entre 1000 y 2000 hacemos unos ajustes para que no se vuelva loco
-//   if(PID < -1000)
-//   {
-//     PID=-1000;
-//   }
-//   if(PID > 1000)
-//   {
-//     PID=1000;
-//   }
-//
-//   // Finalmente le decimos a los motores que hacer
-//   pwmIzq = velocidad + PID;
-//   pwmDer = velocidad - PID;
-//
-//   // Reajustamos la velocidad por si acaso
-//   if(pwmDer < 1200)
-//   {
-//     pwmDer= 1200;
-//   }
-//   if(pwmDer > 2000)
-//   {
-//     pwmDer=2000;
-//   }
-//
-//   if(pwmIzq < 1200)
-//   {
-//     pwmIzq= 1200;
-//   }
-//   if(pwmIzq > 2000)
-//   {
-//     pwmIzq=2000;
-//   }
-//
-//   // Le enviamos los datos a los motores
-//   motor_der.writeMicroseconds(pwmIzq);
-//   Serial.print(pwmIzq);
-//   Serial.print("||");
-//   motor_izq.writeMicroseconds(pwmDer);
-//   Serial.println(pwmDer);
-//   error_previo = error; // Almacenamos el error
-//
-//   motor_der.writeMicroseconds(1700);
-//   motor_izq.writeMicroseconds(1700);
-//  }
+
+#include "I2Cdev.h"
+#include "MPU6050.h"
+#include "Wire.h"
+#include "Servo.h"
+
+Servo motor_del_izq;
+Servo motor_del_der;
+Servo motor_tras_izq;
+Servo motor_tras_der;
+
+int input_YAW;
+int input_PITCH;
+int input_ROLL;
+int input_THROTTLE = 1500;
+int MIN = 1550;
+int MAX = 1650;
+
+float elapsedTime, time, timePrev;
+
+//////////////////////////////PID FOR ROLL///////////////////////////
+float roll_PID, pwm_tras_der, pwm_tras_izq, pwm_del_izq, pwm_del_der, roll_error, roll_previous_error;
+float roll_pid_p=0;
+float roll_pid_i=0;
+float roll_pid_d=0;
+///////////////////////////////ROLL PID CONSTANTS////////////////////
+double roll_kp=2.90;//3.55
+double roll_ki=0.003;//0.003
+double roll_kd=2.05;//2.05
+float roll_desired_angle = 0;
+
+//////////////////////////////PID FOR PITCH//////////////////////////
+float pitch_PID, pitch_error, pitch_previous_error;
+float pitch_pid_p=0;
+float pitch_pid_i=0;
+float pitch_pid_d=0;
+///////////////////////////////PITCH PID CONSTANTS///////////////////
+double pitch_kp=2.90;//3.55
+double pitch_ki=0.003;//0.003
+double pitch_kd=2.05;//2.05
+float pitch_desired_angle = 0;
+
+const int mpuAddress = 0x68;
+MPU6050 mpu(mpuAddress);
+
+int ax, ay, az;
+int gx, gy, gz;
+
+long tiempo_prev;
+float dt;
+float ang_x, ang_y;
+float ang_x_prev, ang_y_prev;
+int angulo_normal = 0;
+
+void updateFiltered()
+{
+   dt = (millis() - tiempo_prev) / 1000.0;
+   tiempo_prev = millis();
+
+   //Calcular los ángulos con acelerometro
+   float accel_ang_x = atan(ay / sqrt(pow(ax, 2) + pow(az, 2)))*(180.0 / 3.14);
+   float accel_ang_y = atan(-ax / sqrt(pow(ay, 2) + pow(az, 2)))*(180.0 / 3.14);
+
+   //Calcular angulo de rotación con giroscopio y filtro complementario
+   ang_x = 0.98*(ang_x_prev + (gx / 131)*dt) + 0.02*accel_ang_x;
+   ang_y = 0.98*(ang_y_prev + (gy / 131)*dt) + 0.02*accel_ang_y;
+
+   ang_x_prev = ang_x;
+   ang_y_prev = ang_y;
+}
+
+void setup()
+{
+   Serial.begin(9600);
+   Wire.begin();
+   mpu.initialize();
+   Serial.println(mpu.testConnection() ? F("IMU iniciado correctamente") : F("Error al iniciar IMU"));
+   motor_del_izq.attach(5, 1450, 2000); // Motor 2
+   motor_del_der.attach(7, 1450, 2000); // Motor 1
+   motor_tras_izq.attach(3, 1450, 2000); // Motor 3
+   motor_tras_der.attach(6, 1450, 2000); // Motor 4
+}
+
+void loop()
+{
+   timePrev = time;
+   time = millis(); // Se lee otra vez el tiempo
+   elapsedTime = (time - timePrev) / 1000; // Se para a segundos
+
+   // Leer las aceleraciones y velocidades angulares
+   mpu.getAcceleration(&ax, &ay, &az);
+   mpu.getRotation(&gx, &gy, &gz);
+
+   updateFiltered();
+
+   //------------PID---------
+   roll_error = ang_x - angulo_normal;
+   pitch_error = ang_y - angulo_normal;
+
+   // Calculamos la kp
+   roll_pid_p = roll_kp*roll_error;
+   pitch_pid_p = pitch_kp*pitch_error;
+
+   if(-3 < roll_error and roll_error <3)
+   {
+     roll_pid_i = roll_pid_i+(roll_ki*roll_error);
+   }
+   if(-3 < pitch_error and pitch_error <3)
+   {
+     pitch_pid_i = pitch_pid_i+(pitch_ki*pitch_error);
+   }
+
+   // Calculamos la derivada
+   roll_pid_d = roll_kd*((roll_error - roll_previous_error)/elapsedTime);
+   pitch_pid_d = pitch_kd*((pitch_error - pitch_previous_error)/elapsedTime);
+
+   // Calculamos el PID global
+   roll_PID = roll_pid_p + roll_pid_i + roll_pid_d;
+   pitch_PID = pitch_pid_p + pitch_pid_i + pitch_pid_d;
+
+   if(roll_PID < -1000){roll_PID=-1000;}
+   if(roll_PID > 2000) {roll_PID=2000;}
+   if(pitch_PID < -1000){pitch_PID=-1000;}
+   if(pitch_PID > 2000) {pitch_PID=2000;}
+
+   // Finalmente calculamos la velocidad global
+   pwm_del_izq  = input_THROTTLE - roll_PID - pitch_PID;
+   pwm_del_der  = input_THROTTLE - roll_PID + pitch_PID;
+   pwm_tras_der  = input_THROTTLE + roll_PID + pitch_PID;
+   pwm_tras_izq  = input_THROTTLE + roll_PID - pitch_PID;
+
+   if(pwm_del_izq < MIN)
+   {
+     pwm_del_izq= MIN;
+   }
+   if(pwm_del_izq > MAX)
+   {
+     pwm_del_izq=MAX;
+   }
+
+   //Left front
+   if(pwm_tras_der < MIN)
+   {
+     pwm_tras_der= MIN;
+   }
+   if(pwm_tras_der > MAX)
+   {
+     pwm_tras_der = MAX;
+   }
+
+   //Right back
+   if(pwm_del_der < MIN)
+   {
+     pwm_del_der= MIN;
+   }
+   if(pwm_del_der > MAX)
+   {
+     pwm_del_der=MAX;
+   }
+
+   //Left back
+   if(pwm_tras_izq < MIN)
+   {
+     pwm_tras_izq= MIN;
+   }
+   if(pwm_tras_izq > MAX)
+   {
+     pwm_tras_izq=MAX;
+   }
+
+   Serial.print(F("Rotacion en X:  "));
+   //Serial.print(ang_x);
+   Serial.print(pwm_del_der);
+   Serial.print("  ");
+   Serial.print(roll_PID);
+   Serial.print(F("\t Rotacion en Y: "));
+   //Serial.println(ang_y);
+   Serial.print(pwm_tras_der);
+   Serial.print("  ");
+   Serial.print(pitch_PID);
+   Serial.println();
+
+   motor_del_izq.writeMicroseconds(pwm_del_izq);
+   motor_del_der.writeMicroseconds(pwm_del_der);
+   motor_tras_izq.writeMicroseconds(pwm_tras_izq);
+   motor_tras_der.writeMicroseconds(pwm_tras_der);
+
+   roll_previous_error = roll_error; //Remember to store the previous error.
+   pitch_previous_error = pitch_error; //Remember to store the previous error.
+
+   delay(10);
+}

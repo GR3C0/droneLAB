@@ -11,19 +11,19 @@
 #define MOTOR_MAX_LEVEL 2000
 
 //---------------PINES MOTORES----------------
-#define MOTOR_DEL_IZQ 2
-#define MOTOR_DEL_DER 3
-#define MOTOR_TRAS_IZQ 4
-#define MOTOR_TRAS_DER 5
+#define MOTOR_DEL_IZQ 3 //TODO: Cambiar pines
+#define MOTOR_DEL_DER 5
+#define MOTOR_TRAS_IZQ 6
+#define MOTOR_TRAS_DER 7
 
 //----------------PINES SONARS-------------------
-#define SONAR_1 6 // Sonar delantero izquierdo
+#define SONAR_1 78 // Sonar delantero izquierdo
 #define SONAR_2 9 // Sonar delantero derecho
 #define SONAR_3 12 // Sonar trasero izquierdo
 #define SONAR_4 15 // Sonar trasero derecho
 #define SONAR_5 18 // Sonar inferiors
 
-#define TRIG_SONAR_1 7 // Trigger sonar del_izq
+#define TRIG_SONAR_1 756 // Trigger sonar del_izq
 #define TRIG_SONAR_2 10 // Triger sonar del_der
 #define TRIG_SONAR_3 13 // Triger sonar tras_izq
 #define TRIG_SONAR_4 16 // Triger sonar tras_der
@@ -44,6 +44,10 @@
 
 //-----------------PID ESPECIFICACIÓNES-----------
 // El MPU6050 envia los datos en int16_t
+
+// TODO: Pruebas:
+#define MIN 1650
+#define MAX 2000
 
 int input_YAW;
 int input_PITCH;
@@ -71,7 +75,7 @@ long activate_count = 0;
 long des_activate_count = 0;
 
 //////////////////////////////PID FOR ROLL///////////////////////////
-float roll_PID, pwm_L_F, pwm_L_B, pwm_R_F, pwm_R_B, roll_error, roll_previous_error;
+float roll_PID, pwm_del_izq, pwm_del_der, pwm_tras_izq, pwm_tras_der, roll_error, roll_previous_error;
 float roll_pid_p=0;
 float roll_pid_i=0;
 float roll_pid_d=0;

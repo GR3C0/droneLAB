@@ -203,7 +203,7 @@ void loop() {
 //  */
 void test()
 {
-    for (int i=1300; i<=2000; i++) {
+    for (int i=1400; i<=1500; i++) {
         Serial.print("Speed = ");
         Serial.println(i);
 

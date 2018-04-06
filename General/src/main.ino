@@ -131,23 +131,6 @@ void setup()
 	//calibracion(); // Primero se calibra
 }
 
-void loop()
-{
-	if(Serial.available()) // Si está disponible la lectura de la raspi
-	{
-		int comando = Serial.read();// Leemos lo enviado por el usuario
-		// Menú para elegir la operacion
-		switch (comando)
-		{
-			case 48:
-							{
-								PID();
-								break;
-							}
-		}
-  }
-}
-
 void sonars() // TODO: implementar sonares a los movimientos, código de uso
 {
 	delay(10);
@@ -251,61 +234,60 @@ void pid()
 	     pwm_tras_izq  = input_THROTTLE + roll_PID + pitch_PID;
 	     pwm_tras_der  = input_THROTTLE + roll_PID - pitch_PID;
 
-	     if(pwm_del_der < MIN)
-	     {
-	       pwm_del_der = MIN;
-	     }
-	     if(pwm_del_der > MAX)
-	     {
-	       pwm_del_der = MAX;
-	     }
-
-	     //Left front
 	     if(pwm_del_izq < MIN)
 	     {
-	       pwm_del_izq = MIN;
+	       pwm_del_izq= MIN;
 	     }
 	     if(pwm_del_izq > MAX)
 	     {
-	       pwm_del_izq = MAX;
+	       pwm_del_izq=MAX;
 	     }
 
-	     //Right back
+	     //Left front
 	     if(pwm_tras_der < MIN)
 	     {
-	       pwm_tras_der = MIN;
+	       pwm_tras_der= MIN;
 	     }
 	     if(pwm_tras_der > MAX)
 	     {
 	       pwm_tras_der = MAX;
 	     }
 
+	     //Right back
+	     if(pwm_del_der < MIN)
+	     {
+	       pwm_del_der= MIN;
+	     }
+	     if(pwm_del_der > MAX)
+	     {
+	       pwm_del_der=MAX;
+	     }
+
 	     //Left back
 	     if(pwm_tras_izq < MIN)
 	     {
-	       pwm_tras_izq = MIN;
+	       pwm_tras_izq= MIN;
 	     }
 	     if(pwm_tras_izq > MAX)
 	     {
-	       pwm_tras_izq = MAX;
+	       pwm_tras_izq=MAX;
 	     }
 
-	     Serial.print(pwm_del_der);
-	     Serial.print(" | | ");
-	     Serial.print(pwm_del_izq);
+	     Serial.print(pwm_tras_izq);
 	     Serial.print(" | | ");
 	     Serial.print(pwm_tras_der);
 	     Serial.print(" | | ");
-	     Serial.println(pwm_tras_izq);
+	     Serial.print(pwm_del_der);
+	     Serial.print(" | | ");
+	     Serial.println(pwm_del_izq);
 
 	     roll_previous_error = roll_error; //Remember to store the previous error.
 	     pitch_previous_error = pitch_error; //Remember to store the previous error.
 
-	     motor_del_izq.writeMicroseconds(pwm_del_izq);
-	     motor_del_der.writeMicroseconds(pwm_del_der);
-	     motor_tras_izq.writeMicroseconds(pwm_tras_izq);
-	     motor_tras_der.writeMicroseconds(pwm_tras_der);
-
+	     motor_del_izq.writeMicroseconds(pwm_tras_der);
+	     motor_del_der.writeMicroseconds(pwm_tras_izq);
+	     motor_tras_izq.writeMicroseconds(pwm_del_izq);
+	     motor_tras_der.writeMicroseconds(pwm_del_der);
 
 // /////////////////////////////I M U/////////////////////////////////////
 // 	timePrev = time;
@@ -450,13 +432,31 @@ void calibracion()
 	motor_del_der.write(180);
 	motor_tras_izq.write(180);
 	motor_tras_der.write(180);
-	delay(5000)
+	delay(5000);
 	Serial.println(" Conecta la bateria");
 	// Envio del minimo de velocidad
 	motor_del_izq.write(0);
 	motor_del_der.write(0);
 	motor_tras_izq.write(0);
 	motor_tras_der.write(0);
-	delay(4000)
+	delay(4000);
 
+}
+
+void loop()
+{
+	if(Serial.available()) // Si está disponible la lectura de la raspi
+	{
+		int comando = Serial.read();// Leemos lo enviado por el usuario
+		// Menú para elegir la operacion
+		switch (comando)
+		{
+			case 48:
+							{while (true) {
+								pid();
+							}
+								break;
+							}
+		}
+  }
 }
