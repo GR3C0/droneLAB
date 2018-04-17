@@ -12,9 +12,9 @@ Servo motor_tras_der;
 int input_YAW;
 int input_PITCH;
 int input_ROLL;
-int input_THROTTLE = 1500;
-int MIN = 1550;
-int MAX = 1650;
+int input_THROTTLE = 1250;
+int MIN = 1200;
+int MAX = 1400;
 
 float elapsedTime, time, timePrev;
 
@@ -24,9 +24,9 @@ float roll_pid_p=0;
 float roll_pid_i=0;
 float roll_pid_d=0;
 ///////////////////////////////ROLL PID CONSTANTS////////////////////
-double roll_kp=2.90;//3.55
-double roll_ki=0.003;//0.003
-double roll_kd=2.05;//2.05
+double roll_kp=2.0;//3.55
+double roll_ki=0.00;//0.003
+double roll_kd=2.0;//2.05
 float roll_desired_angle = 0;
 
 //////////////////////////////PID FOR PITCH//////////////////////////
@@ -35,9 +35,9 @@ float pitch_pid_p=0;
 float pitch_pid_i=0;
 float pitch_pid_d=0;
 ///////////////////////////////PITCH PID CONSTANTS///////////////////
-double pitch_kp=2.90;//3.55
-double pitch_ki=0.003;//0.003
-double pitch_kd=2.05;//2.05
+double pitch_kp=2.00;//3.55
+double pitch_ki=0.00;//0.003
+double pitch_kd=2.0;//2.05
 float pitch_desired_angle = 0;
 
 const int mpuAddress = 0x68;
@@ -75,10 +75,18 @@ void setup()
    Wire.begin();
    mpu.initialize();
    Serial.println(mpu.testConnection() ? F("IMU iniciado correctamente") : F("Error al iniciar IMU"));
-   motor_del_izq.attach(5, 1450, 2000); // Motor 2
-   motor_del_der.attach(7, 1450, 2000); // Motor 1
-   motor_tras_izq.attach(3, 1450, 2000); // Motor 3
-   motor_tras_der.attach(6, 1450, 2000); // Motor 4
+   motor_del_izq.attach(5); // Motor 2
+   motor_del_der.attach(7); // Motor 1
+   motor_tras_izq.attach(3); // Motor 3
+   motor_tras_der.attach(6); // Motor 4
+
+   motor_del_izq.writeMicroseconds(1000); //1000 = 1ms
+   motor_del_der.writeMicroseconds(1000);
+   motor_tras_izq.writeMicroseconds(1000);
+   motor_tras_der.writeMicroseconds(1000);
+
+   delay(2000); // Esperar la activacion
+   Serial.println("Activado");
 }
 
 void loop()
@@ -101,11 +109,11 @@ void loop()
    roll_pid_p = roll_kp*roll_error;
    pitch_pid_p = pitch_kp*pitch_error;
 
-   if(-3 < roll_error and roll_error <3)
+   if(-2 < roll_error and roll_error <2)
    {
      roll_pid_i = roll_pid_i+(roll_ki*roll_error);
    }
-   if(-3 < pitch_error and pitch_error <3)
+   if(-2 < pitch_error and pitch_error <2)
    {
      pitch_pid_i = pitch_pid_i+(pitch_ki*pitch_error);
    }
@@ -169,16 +177,15 @@ void loop()
    }
 
    Serial.print(F("Rotacion en X:  "));
-   //Serial.print(ang_x);
    Serial.print(pwm_del_der);
-   Serial.print("  ");
-   Serial.print(roll_PID);
-   Serial.print(F("\t Rotacion en Y: "));
-   //Serial.println(ang_y);
-   Serial.print(pwm_tras_der);
-   Serial.print("  ");
-   Serial.print(pitch_PID);
-   Serial.println();
+   Serial.print(" || ");
+   Serial.print(pwm_tras_izq);
+   Serial.print(" || ");
+   // Serial.print(F("\t Rotacion en Y: "));
+   // Serial.print(pwm_tras_der);
+   // Serial.print(" || ");
+   // Serial.print(pwm_del_izq);
+   // Serial.println();
 
    motor_del_izq.writeMicroseconds(pwm_del_izq);
    motor_del_der.writeMicroseconds(pwm_del_der);
@@ -188,5 +195,10 @@ void loop()
    roll_previous_error = roll_error; //Remember to store the previous error.
    pitch_previous_error = pitch_error; //Remember to store the previous error.
 
-   delay(10);
+   //roll_kd = roll_kd + 0.1;
+   //pitch_kd = pitch_kd + 0.1;
+   Serial.print("Pitch: " );
+   Serial.println(pitch_kd);
+
+   delay(100);
 }
